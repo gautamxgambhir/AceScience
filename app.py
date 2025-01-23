@@ -46,9 +46,24 @@ def ask_question():
 @app.route("/check_answer", methods=["POST"])
 def check_answer():
     data = request.get_json()  # Parse JSON payload
-    user_answer = data.get('user_answer')
-    correct_answer = session_data.get("answer", "").lower()
-    result = "Correct" if user_answer == correct_answer else "Incorrect"
+    user_answer = data.get('user_answer', '')  # Get user answer
+    correct_answer = session_data.get("answer", "")  # Retrieve the correct answer from session
+
+    # Combine the question, correct answer, and user answer for validation
+    validation_input = f"Question: '{session_data['current_question']}'\nUser's Answer: '{user_answer}'\nCorrect Answer: '{correct_answer}'"
+
+    # Call the AI validation function
+    try:
+        validation_result = ai_check_answer(validation_input)
+        if validation_result.lower().strip() == "correct":
+            result = "Correct"
+        else:
+            result = "Incorrect"
+    except Exception as e:
+        print(f"Error in ai_check_answer: {e}")
+        result = "Error validating answer. Please try again."
+
+    print(f"Validation Input: {validation_input}, Result: {result}")  # Debugging
     return jsonify({"result": result})
 
 @app.route("/show_explanation", methods=["POST"])
